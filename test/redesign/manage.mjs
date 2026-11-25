@@ -112,6 +112,16 @@ await ps.reload(); await ps.waitForTimeout(400);
 ok('the saved server is still there after a reload', await ps.evaluate(() => API_BASE === 'https://sync.example.test'));
 await ps.evaluate(() => saveSyncServer('')); await ps.waitForTimeout(150);
 ok('clearing the box removes the server', await ps.evaluate(() => !hasServer() && localStorage.getItem(SYNC_SERVER_KEY) === null));
+// 5.0.1: a server from before 5.0.0 has no GET / but answers an unknown share link with its own 404
+const oldSrv = r => { const p = new URL(r.request().url()).pathname; const share = /^\/share\/[A-HJ-NP-Z2-9]{6}$/.test(p);
+  return r.fulfill({ status: 404, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ error: share ? 'That share link has expired or never existed' : 'Not found' }) }); };
+await ps.route(/^https:\/\/old\.example\.test\//, oldSrv);
+await ps.route(/^https:\/\/any404\.example\.test\//, r => r.fulfill({ status: 404, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ error: 'Not found' }) }));
+await ps.evaluate(() => saveSyncServer('https://any404.example.test')); await ps.waitForTimeout(500);
+ok('a site that answers 404 to everything is refused', await ps.evaluate(() => !hasServer()));
+await ps.evaluate(() => saveSyncServer('https://old.example.test')); await ps.waitForTimeout(500);
+ok('a sync server from before 5.0.0 is accepted and saved', await ps.evaluate(() => API_BASE === 'https://old.example.test' && localStorage.getItem(SYNC_SERVER_KEY) === 'https://old.example.test'));
+await ps.evaluate(() => saveSyncServer('')); await ps.waitForTimeout(150);
 await ps.close();
 
 // All apps: keyboard and drag

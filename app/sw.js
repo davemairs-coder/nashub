@@ -1,6 +1,6 @@
 // NAS Hub Service Worker
 // Cache name is tied to the app version so every release purges the old cache.
-const CACHE_NAME = "nashub-v5.0.0";
+const CACHE_NAME = "nashub-v5.0.1";
 
 // Only precache things that rarely change. index.html is deliberately NOT
 // precached — a stale app shell was the cause of home-screen PWAs never updating.

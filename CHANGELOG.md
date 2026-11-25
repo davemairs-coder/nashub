@@ -2,6 +2,17 @@
 
 Newest first. Started at 4.16.0.
 
+## 5.0.1 — 2026-11-24 — works with sync servers from before 5.0.0
+
+Found on the 5.0.0 preview (Claude, 2026-11-24): **Save and test** refused the sync server that groups made before 5.0.0 still live on, because only 5.0.0 servers answer `GET /` with their name. A family upgrading to 5.0.0 could not reconnect to its own group.
+
+**Why:** the 5.0.0 note below says to keep the old address in the Sync server box; that has to actually work.
+
+- **Save and test** first asks `GET /` (5.0.0 servers). If that does not name a NAS Hub server, it looks up an unknown short share link; a NAS Hub sync server of any version answers 404 "That share link has expired or never existed". Anything else is still refused.
+- Online backup now says it is kept on **your** sync server, not "the NAS Hub server".
+- Tests: `test/redesign/manage.mjs` checks an old-style server is accepted and a random site is refused.
+- Version 5.0.1 in `index.html` and the `sw.js` cache name.
+
 ## 5.0.0 — 2026-11-24 — free and open source
 
 Asked for by Dave (2026-11-23): no sales, so the app becomes a free open source project.

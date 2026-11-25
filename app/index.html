@@ -1000,7 +1000,7 @@ function demoStatus(){
 // Standards), the running version is shown next to the product name and is rendered
 // from here — never typed as a literal a second time. When bumping: change this AND
 // the CACHE name in sw.js together, or returning users get a stale cached app.
-const APP_VERSION="5.0.0";
+const APP_VERSION="5.0.1";
 const STORE_KEY="nashub-v2";
 const GROUPS_KEY="nashub-groups-v2";
 const COLLAPSED_KEY="nashub-collapsed-v2";
@@ -3546,6 +3546,17 @@ function buildSyncServerCard(){
     <button class="mg-btn" style="margin-top:12px" onclick="saveSyncServer(document.getElementById('sync-server-inp').value)">Save and test</button>
   </div>`;
 }
+// Is this address a NAS Hub sync server? 5.0.0 servers answer GET / with their name.
+// Servers from before 5.0.0 have no such route, and groups made before 5.0.0 still live on
+// them, so fall back to a lookup only a NAS Hub sync server answers this way: an unknown
+// short share link gets a 404 that says so. (5.0.1)
+async function isSyncServer(u){
+  try{const r=await fetch(u+"/",{cache:"no-store"});if(r.ok){const d=await r.json();if(d&&d.service==="nashub-sync")return true;}}catch(e){}
+  try{
+    const r=await fetch(u+"/share/ZZZZZZ",{cache:"no-store"});if(r.status!==404)return false;
+    const d=await r.json();return !!d&&typeof d.error==="string"&&/share link/i.test(d.error);
+  }catch(e){return false;}
+}
 async function saveSyncServer(v){
   v=(v||"").trim();
   if(!v){
@@ -3556,10 +3567,7 @@ async function saveSyncServer(v){
   if(!u){toast("Enter the full address, starting with https://","#FFC300");return;}
   if(S.syncGroup&&hasServer()&&u!==API_BASE){toast("Leave your group before changing the server","#FFC300");return;}
   toast("Checking the server…","#4B6EF7");
-  try{
-    const r=await fetch(u+"/",{cache:"no-store"});const d=await r.json();
-    if(!r.ok||d.service!=="nashub-sync")throw new Error("not a sync server");
-  }catch(e){toast("That address did not answer like a NAS Hub sync server","#ff5555");return;}
+  if(!await isSyncServer(u)){toast("That address did not answer like a NAS Hub sync server","#ff5555");return;}
   setSyncServer(u);toast("Sync server saved","#4aff6a");render();
 }
 function saveJellyfin(){localStorage.setItem(JELLYFIN_KEY,JSON.stringify(S.jellyfin));}
@@ -6769,7 +6777,7 @@ async function deleteCloudBackup(){
 function buildCloudBackup(){
   const c=S.cbk||{},rec=cloudBkRecord(),secure=!!(window.crypto&&crypto.subtle);
   return`<div class="mg-card cbk-card">
-      <p>The same backup, locked with your passphrase on this device before it leaves, then kept on the NAS Hub server. Restore it anywhere with the backup ID and the passphrase. Nobody else can read it, NAS Hub included, and a forgotten passphrase can't be recovered.</p>
+      <p>The same backup, locked with your passphrase on this device before it leaves, then kept on your sync server. Restore it anywhere with the backup ID and the passphrase. Nobody else can read it, NAS Hub included, and a forgotten passphrase can't be recovered.</p>
       ${!secure?`<p style="color:var(--warn-text)">This needs a secure page. Open <strong>app.nashubapp.com</strong> to use online backup.</p>`:`
       ${rec?`<div class="cbk-id">
         <div style="min-width:0"><div class="cbk-id-l">Backup ID · saved ${rec.updated?esc(new Date(rec.updated).toLocaleString()):"—"}</div><div class="cbk-id-v">${esc(rec.id)}</div></div>
