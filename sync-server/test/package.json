@@ -1,0 +1,12 @@
+{
+  "name": "nashub-sync-tests",
+  "private": true,
+  "description": "Dev-only. The worker itself has no dependencies; these are here so the hand-written Web Push crypto can be checked against somebody else's implementation.",
+  "scripts": {
+    "test": "node run.js && node guess-limit.mjs && node cryptotest.js && node e2e.mjs && node month.js && node kvbudget.mjs"
+  },
+  "devDependencies": {
+    "web-push": "^3.6.7",
+    "http_ece": "^1.2.1"
+  }
+}

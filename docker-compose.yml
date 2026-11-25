@@ -1,0 +1,7 @@
+services:
+  nashub:
+    image: nashubapp/nashub:latest
+    container_name: nashub
+    restart: unless-stopped
+    ports:
+      - "8765:80"

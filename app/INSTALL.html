@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install NAS Hub on your own server</title>
+<style>
+  :root { --ink:#1b2333; --muted:#4a5568; --line:#d9dee7; --navy:#173B63; --bg:#ffffff; --code:#f3f5f9; }
+  @media (prefers-color-scheme: dark) { :root { --ink:#e8ecf3; --muted:#b4bccb; --line:#2c3446; --navy:#8fb3e8; --bg:#0f1420; --code:#1a2131; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 28px; line-height:1.25; margin: 0 0 8px; color: var(--navy); }
+  h2 { font-size: 21px; margin: 48px 0 12px; color: var(--navy); }
+  p, li { margin: 0 0 12px; }
+  .lead { color: var(--muted); font-size: 17px; }
+  ol, ul { padding-left: 24px; }
+  pre { background: var(--code); border:1px solid var(--line); border-radius: 8px; padding: 12px 16px; overflow-x: auto; font: 14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
+  code { font: 15px ui-monospace,SFMono-Regular,Menlo,monospace; background: var(--code); padding: 1px 4px; border-radius: 4px; }
+  .note { border-left: 4px solid var(--navy); padding: 12px 16px; background: var(--code); border-radius: 0 8px 8px 0; margin: 16px 0; }
+</style>
+</head>
+<body>
+<main>
+<h1>Install NAS Hub on your own server</h1>
+<p class="lead">This folder is the whole app: plain files, no database. Put them on any web server on your network and open the address in a browser. About 10 minutes.</p>
+
+<h2>1. Copy the folder to your NAS</h2>
+<p>Unzip this download and copy the folder to a share on your NAS, for example <code>/mnt/tank/apps/nashub</code> on TrueNAS. Keep the files together: <code>index.html</code>, <code>sw.js</code>, <code>manifest.json</code>, the two icons, and the <code>agent</code> and <code>help</code> folders.</p>
+
+<h2>2. Serve it with a small web server</h2>
+<p><strong>Docker (any NAS that runs containers):</strong> one line. Change the folder path to where you copied it, and <code>8080</code> to any free port.</p>
+<pre>docker run -d --name nashub --restart unless-stopped -p 8080:80 -v /mnt/tank/apps/nashub:/usr/share/nginx/html:ro nginx:alpine</pre>
+<p><strong>TrueNAS SCALE without the command line:</strong> Apps → Discover Apps → <em>Custom App</em>. Image <code>nginx</code>, tag <code>alpine</code>. Add a host path storage from your folder to <code>/usr/share/nginx/html</code> (read only). Port: host <code>8080</code> → container <code>80</code>. Save.</p>
+<p><strong>Already have a web server</strong> (Nginx, Apache, Caddy, a Synology or Unraid web share)? Point a site at the folder. Nothing else to set up.</p>
+
+<h2>3. Open it</h2>
+<ol>
+  <li>On your phone or computer, on your home Wi-Fi, open <code>http://&lt;your NAS address&gt;:8080</code> (for example <code>http://192.168.1.20:8080</code>).</li>
+  <li>Add your apps, or import them from TrueNAS (Manage → Add apps → TrueNAS).</li>
+  <li>Every feature is included. To use Group Sync, short share links or online backup, set up your own sync server (the <code>sync-server</code> folder of the source code) and enter its address under Manage, Sync and backup, Group Sync.</li>
+</ol>
+<div class="note"><strong>Plain http on your home network works for everything in the app, and it is the setup that can check local addresses like <code>http://192.168.x.x</code>.</strong> Two things browsers only allow over https: adding it to the Home Screen as an app, and down alerts on a phone. For those, put it behind https, for example with Tailscale (<code>tailscale serve 8080</code> on the NAS) or the reverse proxy you already use.</div>
+
+<h2>4. Update to a new version</h2>
+<ol>
+  <li>Download the new zip from your account and unzip it.</li>
+  <li>Replace the files in the folder on your NAS with the new ones. Your apps and settings are kept: they live in each browser, not in these files.</li>
+  <li>Open NAS Hub. It shows "New version ready"; tap it. If it doesn't, close the tab and open it again.</li>
+</ol>
+
+<h2>Help</h2>
+<p><code>help/NASHUB-AI-HELP.md</code> explains every screen and the common walls (why some checks say BLOCKED, the TrueNAS bridge, alerts). You can paste it into an AI assistant and ask your question.</p>
+<p>Still stuck? Open an issue on the project page (in the app: Manage, About, Get the code) with the version shown next to the NAS Hub name.</p>
+</main>
+</body>
+</html>

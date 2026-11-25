@@ -1,0 +1,42 @@
+# Cloudflare Pages _headers. NOTE (2026-09-16): this file used to be written in
+# TOML ([[headers]] blocks with a [build] section), which Pages does not parse —
+# it wants the plain "path, then two-space-indented Header: value" form below.
+# So none of these headers were ever actually sent. The old file is kept beside
+# this one as _headers.toml-was-never-parsed.bak. The sw.js no-cache rule is the
+# one that matters most: without it a device can sit on a cached service worker
+# and keep serving an old version of the app, which is exactly the symptom Dave
+# hit on the tablet (stuck on 4.9.2 while the phone had moved on).
+
+# 4.14.0: only nashubapp.com may show the app inside its pages (the demo in the home page phone);
+# every other site is still refused. frame-ancestors replaces X-Frame-Options: SAMEORIGIN.
+/*
+  Content-Security-Policy: frame-ancestors 'self' https://nashubapp.com
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/manifest.json
+  Cache-Control: no-cache
+
+# 4.16.0: the bundled typefaces. Their names never change, so phones can keep them for a year.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The bridge agent. Served as plain text so it is obvious what is being
+# downloaded, and cached only briefly so a fix reaches people the same day.
+/agent/*
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=300
+
+# The AI help file. Plain text so it opens in the browser and pastes cleanly.
+/help/*
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=300
+
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
